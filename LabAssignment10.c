@@ -4,7 +4,7 @@
 
 struct Trie {
     int count;
-    struct Trie *children;
+    struct Trie *children[26];
 };
 
 void insert(struct Trie **ppTrie, char *word) {
@@ -12,10 +12,10 @@ void insert(struct Trie **ppTrie, char *word) {
     int n = strlen(word);
     for (int i = 0; i < n; i++) {
         int index = word[i] - 'a';
-        if (curr->children == NULL) {
-            curr->children = (struct Trie *) calloc(1, sizeof(struct Trie));
+        if (curr->children[index] == NULL) {
+            curr->children[index] = (struct Trie *) calloc(1, sizeof(struct Trie));
         }
-        curr = curr->children + index;
+        curr = curr->children[index];
     }
     curr->count++;
 }
@@ -25,40 +25,37 @@ int numberOfOccurrences(struct Trie *pTrie, char *word) {
     int n = strlen(word);
     for (int i = 0; i < n; i++) {
         int index = word[i] - 'a';
-        if (curr->children == NULL) {
+        if (curr->children[index] == NULL) {
             return 0;
         }
-        curr = curr->children + index;
+        curr = curr->children[index];
     }
     return curr->count;
 }
 
-void deallocateTrie(struct Trie *pTrie) {
+struct Trie *deallocateTrie(struct Trie *pTrie) {
     if (pTrie != NULL) {
-        if (pTrie->children != NULL) {
-            for (int i = 0; i < 26; i++) {
-                deallocateTrie(pTrie->children + i);
-            }
-            free(pTrie->children);
+        for (int i = 0; i < 26; i++) {
+            deallocateTrie(pTrie->children[i]);
         }
         free(pTrie);
     }
+    return NULL;
 }
 
 int main(void) {
     struct Trie *trie = (struct Trie *) calloc(1, sizeof(struct Trie));
-    int numWords;
-    scanf("%d", &numWords);
+    char *words[] = {"notaword", "ucf", "no", "note", "corg"};
+    int numWords = sizeof(words) / sizeof(words[0]);
     for (int i = 0; i < numWords; i++) {
-        char word[100];
-        scanf("%s", word);
-        insert(&trie, word);
+        insert(&trie, words[i]);
     }
-    char *pWords[] = {"notaword", "ucf", "no", "note", "corg"};
-    for (int i = 0; i < 5; i++) {
-        printf("\t%s : %d\n", pWords[i], numberOfOccurrences(trie, pWords[i]));
+    for (int i = 0; i < numWords; i++) {
+        printf("\t%s : %d\n", words[i], numberOfOccurrences(trie, words[i]));
     }
-    deallocateTrie(trie);
+    trie = deallocateTrie(trie);
+    if (trie != NULL) {
+        printf("There is an error in this program\n");
+    }
     return 0;
 }
-
